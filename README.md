@@ -6,6 +6,9 @@
 
 * Run ```poetry install``` to install dependencies
 
+#### Pre-commit
+* Run ```poetry run pre-commit install``` to install pre-commit hook
+
 #### Tests
 * Run ```poetry run pytest```
 
