@@ -6,14 +6,11 @@
 
 * Run ```poetry install``` to install dependencies
 
-#### Pre-commit
-* Run ```poetry run pre-commit install``` to install pre-commit hook
-
 #### Tests
 * Run ```poetry run pytest```
 
 #### Lint
-* Run ```poetry run flake8```
+* Run ```poetry run flake8 [path]```
 
 #### Code formatting
 * Run ```poetry run black [path]```
