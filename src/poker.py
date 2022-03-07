@@ -26,6 +26,7 @@
 # Вам наверняка пригодится itertools.
 # Можно свободно определять свои функции и т.п.
 # -----------------
+from collections import Counter
 
 RANKS_MAPPING = {
     "2": 2,
@@ -98,7 +99,8 @@ def straight(ranks):
 def kind(n, ranks):
     """Возвращает первый ранг, который n раз встречается в данной руке.
     Возвращает None, если ничего не найдено"""
-    return
+    cnt = dict(Counter(ranks))
+    return next((item for item in ranks if cnt[item] == n), None)
 
 
 def two_pair(ranks):
@@ -116,6 +118,21 @@ def best_hand(hand):
 def best_wild_hand(hand):
     """best_hand но с джокерами"""
     return
+
+
+def test_kind():
+    print("test_kind")
+    res1 = kind(3, [2, 2, 3, 4, 2])
+    res2 = kind(2, [4, 2, 3, 4, 2])
+    res3 = kind(3, [4, 2, 3, 4, 2])
+    res4 = kind(1, [7, 2, 3, 5, 6])
+
+    assert res1 == 2
+    assert res2 == 4
+    assert res3 is None
+    assert res4 == 7
+
+    print("OK")
 
 
 def test_flush():
@@ -226,3 +243,4 @@ if __name__ == "__main__":
     test_card_ranks()
     test_straight()
     test_flush()
+    test_kind()
