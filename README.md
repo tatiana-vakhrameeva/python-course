@@ -13,3 +13,6 @@
 * Run ```poetry run black [path]```
 
 
+#### Run poker task
+```./run poker```
+

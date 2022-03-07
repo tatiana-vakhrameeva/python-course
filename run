@@ -1,0 +1,10 @@
+#!/bin/bash
+
+poker() {
+    echo "Running poker..."
+    poetry run python src/poker.py
+}
+
+if [[ "$1" = "poker" ]]; then
+    poker
+fi
