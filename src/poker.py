@@ -44,12 +44,12 @@ RANKS_MAPPING = {
 }
 
 
-def get_card_rank(str_card: str) -> int:
+def get_card_rank(str_card):
     """Возвращает ранг переданной карты"""
     return RANKS_MAPPING.get(str_card[0])
 
 
-def get_card_suit(str_card: str) -> str:
+def get_card_suit(str_card):
     """Возвращает масть переданной карты"""
     return str_card[1]
 
@@ -86,13 +86,13 @@ def card_ranks(hand):
 
 def flush(hand):
     """Возвращает True, если все карты одной масти"""
-    return
+    return all([get_card_suit(x) == get_card_suit(hand[0]) for x in hand])
 
 
 def straight(ranks):
     """Возвращает True, если отсортированные ранги формируют последовательность 5ти,
     где у 5ти карт ранги идут по порядку (стрит)"""
-    return
+    return all([x - ranks[0] == i for i, x in enumerate(ranks)])
 
 
 def kind(n, ranks):
@@ -118,10 +118,39 @@ def best_wild_hand(hand):
     return
 
 
+def test_flush():
+    print("test_flush")
+    res1 = flush("6C 7C 8C 9C TC".split())
+    res2 = flush("6C 7S 8C 9C TC".split())
+    res3 = flush("6H 7S 8C 9D TC".split())
+
+    assert res1 is True
+    assert res2 is False
+    assert res3 is False
+    print("OK")
+
+
+def test_straight():
+    print("test_straight")
+    res1 = straight([5, 6, 7, 8, 9])
+    res2 = straight([5, 6, 7, 9, 9])
+    res3 = straight([5, 5, 7, 8, 9])
+    res4 = straight([5, 6, 6, 8, 9])
+    res5 = straight([5, 5, 5, 5, 5])
+
+    assert res1 is True
+    assert res2 is False
+    assert res3 is False
+    assert res4 is False
+    assert res5 is False
+
+    print("OK")
+
+
 def test_card_ranks():
     print("test_card_ranks...")
-    ranks = card_ranks("6C 7C 8C 9C TC 5C JS".split())
-    assert ranks == [5, 6, 7, 8, 9, 10, 11]
+    ranks = card_ranks("6C 9C TC 5C JS".split())
+    assert ranks == [5, 6, 9, 10, 11]
     print("OK")
 
 
@@ -195,3 +224,5 @@ if __name__ == "__main__":
     # test_best_wild_hand()
     test_card_getters()
     test_card_ranks()
+    test_straight()
+    test_flush()
