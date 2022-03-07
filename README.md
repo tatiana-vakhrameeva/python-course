@@ -6,9 +6,6 @@
 
 * Run ```poetry install``` to install dependencies
 
-#### Tests
-* Run ```poetry run pytest```
-
 #### Lint
 * Run ```poetry run flake8 [path]```
 

@@ -12,9 +12,3 @@ repos:
         entry: poetry run black
         files: ^src|tests
         language: system
-
-    -   id: pytest
-        name: pytest
-        entry: poetry run pytest
-        files: ^tests
-        language: system

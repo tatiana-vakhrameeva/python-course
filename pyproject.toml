@@ -6,7 +6,6 @@ authors = ["Tatiana Vakhrameeva <tvakhrameeva@lineate.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pytest = "6.2.5"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
