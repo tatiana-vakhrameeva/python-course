@@ -27,6 +27,7 @@
 # Можно свободно определять свои функции и т.п.
 # -----------------
 from collections import Counter
+import itertools
 
 RANKS_MAPPING = {
     "2": 2,
@@ -117,8 +118,11 @@ def two_pair(ranks):
 
 def best_hand(hand):
     """Из "руки" в 7 карт возвращает лучшую "руку" в 5 карт"""
-    hand_rank(hand)
-    return
+    hand_combinations = itertools.combinations(hand, 5)
+    hands_with_rank = dict((hc, hand_rank(hc)) for hc in hand_combinations)
+    best_hand = max(hands_with_rank, key=lambda k: hands_with_rank[k])
+
+    return best_hand
 
 
 def best_wild_hand(hand):
@@ -258,7 +262,6 @@ def test_best_wild_hand():
 
 
 if __name__ == "__main__":
-    # test_best_hand()
     # test_best_wild_hand()
     test_card_getters()
     test_card_ranks()
@@ -266,3 +269,4 @@ if __name__ == "__main__":
     test_flush()
     test_kind()
     test_two_pair()
+    test_best_hand()
