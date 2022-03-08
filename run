@@ -1,10 +1,18 @@
 #!/bin/bash
 
+init() {
+    echo "Init..."
+    poetry env use python3.10
+    poetry install
+}
+
 poker() {
     echo "Running poker..."
     poetry run python src/poker.py
 }
 
-if [[ "$1" = "poker" ]]; then
+if [[ "$1" = "init" ]]; then
+    init
+elif [[ "$1" = "poker" ]]; then
     poker
 fi
