@@ -1,0 +1,11 @@
+#!/bin/bash
+
+init() {
+    echo "Init..."
+    poetry env use python3.10
+    poetry install
+}
+
+if [[ "$1" = "init" ]]; then
+    init
+fi
