@@ -1,0 +1,5 @@
+{
+    "REPORT_DIR": "reports",
+    "LOG_DIR": "nginx_logs",
+    "LOG_FILE": "logs/analyzer_logs.txt"
+}

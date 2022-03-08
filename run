@@ -6,6 +6,13 @@ init() {
     poetry install
 }
 
+log_analyzer() {
+    echo "Running log analyzer..."
+    poetry run python src/log_analyzer.py
+}
+
 if [[ "$1" = "init" ]]; then
     init
+elif [[ "$1" = "log_analyzer" ]]; then
+    log_analyzer
 fi
