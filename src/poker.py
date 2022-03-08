@@ -262,7 +262,6 @@ def test_best_wild_hand():
 
 
 if __name__ == "__main__":
-    # test_best_wild_hand()
     test_card_getters()
     test_card_ranks()
     test_straight()
