@@ -99,14 +99,20 @@ def straight(ranks):
 def kind(n, ranks):
     """Возвращает первый ранг, который n раз встречается в данной руке.
     Возвращает None, если ничего не найдено"""
-    cnt = dict(Counter(ranks))
+    cnt = Counter(ranks)
     return next((item for item in ranks if cnt[item] == n), None)
 
 
 def two_pair(ranks):
-    """Если есть две пары, то возврщает два соответствующих ранга,
+    """Если есть две пары, то возвращает два соответствующих ранга,
     иначе возвращает None"""
-    return
+    cnt = Counter(ranks)
+    pairs = dict((key, value) for key, value in cnt.items() if value >= 2)
+
+    if len(pairs) == 2:
+        return list(pairs.keys())
+
+    return None
 
 
 def best_hand(hand):
@@ -118,6 +124,21 @@ def best_hand(hand):
 def best_wild_hand(hand):
     """best_hand но с джокерами"""
     return
+
+
+def test_two_pair():
+    print("two_pair")
+    res1 = two_pair([2, 2, 3, 4, 4])
+    res2 = two_pair([2, 2, 2, 4, 4])
+    res3 = two_pair([2, 3, 2, 8, 4])
+    res4 = two_pair([2, 3, 6, 8, 8])
+
+    assert res1 == [2, 4]
+    assert res2 == [2, 4]
+    assert res3 is None
+    assert res4 is None
+
+    print("OK")
 
 
 def test_kind():
@@ -244,3 +265,4 @@ if __name__ == "__main__":
     test_straight()
     test_flush()
     test_kind()
+    test_two_pair()
