@@ -94,9 +94,11 @@ def median(values_list):
 
 
 def setup_logger(log_path):
-    log_dir = os.path.split(log_path)[0]
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    if log_path is not None:
+        log_dir = os.path.split(log_path)[0]
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
     logging.basicConfig(
         filename=log_path,
         level=logging.INFO,
@@ -165,7 +167,7 @@ if __name__ == "__main__":
     # here merge somehow configs config, args.config
     config = load_conf(args.config)
 
-    setup_logger(config.get("LOG_FILE"))
+    setup_logger(config.get("LOG_FILE", None))
 
     # try:
     main(config)
