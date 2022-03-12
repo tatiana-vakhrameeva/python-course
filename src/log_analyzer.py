@@ -33,7 +33,6 @@ config = {
     "REPORT_SIZE": 1000,
     "REPORT_DIR": "./reports",
     "LOG_DIR": "./log",
-    "LOG_FILE": None,
 }
 
 DEFAULT_CONFIG_PATH = "conf/config.json"
@@ -165,7 +164,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # here merge somehow configs config, args.config
-    config = load_conf(args.config)
+    args_config = load_conf(args.config)
+    config.update(args_config)
 
     setup_logger(config.get("LOG_FILE", None))
 
