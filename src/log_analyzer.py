@@ -6,8 +6,9 @@ import gzip
 import argparse
 import io
 from datetime import datetime
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from string import Template
+import statistics
 
 
 LOG_RECORD_RE = re.compile(
@@ -52,32 +53,73 @@ def load_conf(conf_path):
 def create_report(records, max_records):
     total_records = 0
     total_time = 0
-    intermediate_data = {}
+    report_lines = []
+    urls_info = defaultdict(list)
 
     for href, response_time in records:
         total_records += 1
         total_time += response_time
-        # CODE HERE
 
-#1.196.116.32 -  - [29/Jun/2017:03:50:22 +0300] "GET /api/v2/banner/25019354 HTTP/1.1" 200 927 "-" "Lynx/2.8.8dev.9 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/2.10.5" "-" "1498697422-2190034393-4708-9752759" "dc7161be3" 0.390
+        urls_info[href].append(response_time)
+
+        if total_records == max_records:
+            break
+
+    for key, value in urls_info.items():
+        count = len(value)
+        time_sum = sum(value)
+        report_line = {
+            "href": key,
+            "count": count,
+            "count_perc": 100 * float(count) / float(len(urls_info.items())),
+            "time_sum": time_sum,
+            "time_perc": 100 * float(time_sum) / float(total_time),
+            "time_avg": statistics.mean(value),
+            "time_max": max(value),
+            "time_med": statistics.median(value),
+        }
+
+        report_lines.append(report_line)
+
+    return report_lines
+
+
 def get_log_records(log_path, errors_limit=None):
     open_fn = gzip.open if is_gzip_file(log_path) else io.open
     errors = 0
-    records = 0
-    with open_fn(log_path, mode='rb') as log_file:
-        records = log_file.data
-    # CODE HERE
+    records = []
+    with open_fn(log_path, mode="rb") as log_file:
+        for line in log_file:
+            line = line.decode("utf-8")
+
+            parsed_line = parse_log_record(line)
+            if parsed_line is None:
+                errors += 1
+                continue
+
+            records.append(parsed_line)
+
+    records_count = len(records)
 
     if (
         errors_limit is not None
-        and records > 0
-        and errors / float(records) > errors_limit
+        and records_count > 0
+        and errors / float(records_count) > errors_limit
     ):
         raise RuntimeError("Errors limit exceeded")
 
+    return records
+
 
 def parse_log_record(log_line):
-    # CODE HERE
+    search = re.search(LOG_RECORD_RE, log_line)
+
+    if not search:
+        return None
+
+    href = search.group(1)
+    request_time = float(search.group(2))
+
     return href, request_time
 
 
@@ -111,20 +153,20 @@ def get_latest_log_info(files_dir):
     if not os.path.isdir(files_dir):
         return None
 
-    latest_file_info = {'file_date': 0, 'name': None}
+    latest_file_info = {"file_date": 0, "name": None}
     # define which latest
     for filename in os.listdir(files_dir):
         match = re.match(r"^nginx-access-ui\.log-(?P<date>\d{8})(\.gz)?$", filename)
         if not match:
             continue
-        
-        file_date = re.search('(?P<date>\d{8})', filename).group(0)
-        if int(file_date) > int(latest_file_info['file_date']):
-            latest_file_info['file_date'] = file_date
-            latest_file_info['name'] = filename
+
+        file_date = re.search("(?P<date>\d{8})", filename).group(0)
+        if int(file_date) > int(latest_file_info["file_date"]):
+            latest_file_info["file_date"] = file_date
+            latest_file_info["name"] = filename
 
         # CODE HERE
-    if latest_file_info['name'] :
+    if latest_file_info["name"]:
         return latest_file_info
 
     return None
@@ -148,21 +190,23 @@ def main(config):
         logging.info("Ooops. No log files yet")
         return
 
-    report_date_string = datetime.strptime(latest_log_info['file_date'],'%Y%m%d').strftime("%Y.%m.%d")
-    
+    report_date_string = datetime.strptime(
+        latest_log_info["file_date"], "%Y%m%d"
+    ).strftime("%Y.%m.%d")
+
     report_filename = "report-{}.html".format(report_date_string)
-    report_file_path = os.path.join(config['REPORT_DIR'], report_filename)
-    
+    report_file_path = os.path.join(config["REPORT_DIR"], report_filename)
+
     if os.path.isfile(report_file_path):
         logging.info("Looks like everything is up-to-date")
         return
 
     # report creation
-    latest_log_path = os.path.join(config['LOG_DIR'], latest_log_info["name"])
+    latest_log_path = os.path.join(config["LOG_DIR"], latest_log_info["name"])
     logging.info('Collecting data from "{}"'.format(os.path.normpath(latest_log_path)))
-    log_records = get_log_records(latest_log_path, config.get('ERRORS_LIMIT')) #think about value
-    print(log_records)
-    # report_data = create_report(log_records, config['MAX_REPORT_SIZE'])
+    log_records = get_log_records(latest_log_path, config.get("ERRORS_LIMIT"))
+
+    report_data = create_report(log_records, config["MAX_REPORT_SIZE"])
 
     # render_template(REPORT_TEMPLATE_PATH, report_file_path, report_data)
 
