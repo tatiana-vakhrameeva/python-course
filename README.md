@@ -10,4 +10,7 @@
 #### Code formatting
 * Run ```poetry run black [path]```
 
+#### Tests
+* Run ``` poetry run python -m unittest -v```
+
 

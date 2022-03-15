@@ -28,12 +28,16 @@ LOG_RECORD_RE = re.compile(
     r"(?P<time>\d+\.\d+)"  # request_time
 )
 
+# TODO: use it
 DateNamedFileInfo = namedtuple("DateNamedFileInfo", ["file_path", "file_date"])
 
 config = {
-    "REPORT_SIZE": 1000,
-    "REPORT_DIR": "./reports",
-    "LOG_DIR": "./log",
+    "REPORT_DIR": "reports",
+    "LOG_DIR": "nginx_logs",
+    "LOG_FILE": "logs/analyzer_logs.txt",
+    "ERRORS_LIMIT": 1000,
+    "MAX_REPORT_SIZE": 10000,
+    "REPORT_TEMPLATE_PATH": "templates",
 }
 
 DEFAULT_CONFIG_PATH = "conf/config.json"
@@ -220,14 +224,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # think about what will be in default config
     args_config = load_conf(args.config)
     config.update(args_config)
 
     setup_logger(config.get("LOG_FILE", None))
 
-    # try:
-    main(config)
-    # uncomment when main will be ready
-    # except Exception as e:
-    #     logging.exception(msg=e)
+    try:
+        main(config)
+    except Exception as e:
+        logging.exception(msg=e)
