@@ -3,3 +3,4 @@
 __pycache__
 nginx_logs
 logs
+jquery*

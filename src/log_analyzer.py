@@ -12,20 +12,20 @@ import statistics
 
 
 LOG_RECORD_RE = re.compile(
-    "^"
-    "\S+ "  # remote_addr
-    "\S+\s+"  # remote_user (note: ends with double space)
-    "\S+ "  # http_x_real_ip
-    "\[\S+ \S+\] "  # time_local [datetime tz] i.e. [29/Jun/2017:10:46:03 +0300]
-    '"\S+ (?P<href>\S+) \S+" '  # request "method href proto" i.e. "GET /api/v2/banner/23815685 HTTP/1.1"
-    "\d+ "  # status
-    "\d+ "  # body_bytes_sent
-    '"\S+" '  # http_referer
-    '".*" '  # http_user_agent
-    '"\S+" '  # http_x_forwarded_for
-    '"\S+" '  # http_X_REQUEST_ID
-    '"\S+" '  # http_X_RB_USER
-    "(?P<time>\d+\.\d+)"  # request_time
+    r"^"
+    r"\S+ "  # remote_addr
+    r"\S+\s+"  # remote_user (note: ends with double space)
+    r"\S+ "  # http_x_real_ip
+    r"\[\S+ \S+\] "  # time_local [datetime tz] i.e. [29/Jun/2017:10:46:03 +0300]
+    r'"\S+ (?P<href>\S+) \S+" '  # request "method href proto" i.e. "GET /api/v2/banner/23815685 HTTP/1.1"
+    r"\d+ "  # status
+    r"\d+ "  # body_bytes_sent
+    r'"\S+" '  # http_referer
+    r'".*" '  # http_user_agent
+    r'"\S+" '  # http_x_forwarded_for
+    r'"\S+" '  # http_X_REQUEST_ID
+    r'"\S+" '  # http_X_RB_USER
+    r"(?P<time>\d+\.\d+)"  # request_time
 )
 
 DateNamedFileInfo = namedtuple("DateNamedFileInfo", ["file_path", "file_date"])
@@ -123,13 +123,6 @@ def parse_log_record(log_line):
     return href, request_time
 
 
-def median(values_list):
-    if not values_list:
-        return None
-
-    # CODE HERE
-
-
 ####################################
 # Utils
 ####################################
@@ -160,7 +153,7 @@ def get_latest_log_info(files_dir):
         if not match:
             continue
 
-        file_date = re.search("(?P<date>\d{8})", filename).group(0)
+        file_date = re.search(r"(?P<date>\d{8})", filename).group(0)
         if int(file_date) > int(latest_file_info["file_date"]):
             latest_file_info["file_date"] = file_date
             latest_file_info["name"] = filename
@@ -179,7 +172,14 @@ def is_gzip_file(file_path):
 def render_template(template_path, to, data):
     if data is None:
         data = []
-    # CODE HERE
+
+    template_file_path = os.path.join(template_path, "report.html")
+    with open(template_file_path) as template_file:
+        template = Template(template_file.read())
+
+    report = template.safe_substitute(table_json=json.dumps(data))
+    with open(to, "w") as report_file:
+        report_file.write(report)
 
 
 def main(config):
@@ -208,7 +208,7 @@ def main(config):
 
     report_data = create_report(log_records, config["MAX_REPORT_SIZE"])
 
-    # render_template(REPORT_TEMPLATE_PATH, report_file_path, report_data)
+    render_template(config.get("REPORT_TEMPLATE_PATH"), report_file_path, report_data)
 
     # logging.info('Report saved to {}'.format(os.path.normpath(report_file_path)))
 

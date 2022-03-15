@@ -3,5 +3,6 @@
     "LOG_DIR": "nginx_logs",
     "LOG_FILE": "logs/analyzer_logs.txt",
     "ERRORS_LIMIT": 1000,
-    "MAX_REPORT_SIZE": 10000
+    "MAX_REPORT_SIZE": 10000,
+    "REPORT_TEMPLATE_PATH": "templates"
 }
