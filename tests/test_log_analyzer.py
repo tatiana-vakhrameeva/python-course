@@ -1,5 +1,5 @@
 import unittest
-from src.log_analyzer import is_gzip_file, get_log_records
+from src.log_analyzer import is_gzip_file, get_log_records, parse_log_record
 
 
 class TestLogAnalyzer(unittest.TestCase):
@@ -29,3 +29,13 @@ class TestLogAnalyzer(unittest.TestCase):
         errors_limit = 0.5
         res = get_log_records(log_path, errors_limit)
         self.assertEqual(len(res), 4)
+
+    def test_parse_log_record(self):
+        log = '1.199.4.96 -  - [29/Jun/2017:03:50:22 +0300] "GET /api/v2/slot/4705/groups HTTP/1.1" 200 2613 "-" "Lynx/2.8.8dev.9 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/2.10.5" "-" "1498697422-3800516057-4708-9752745" "2a828197ae235b0b3cb" 0.704'  # noqa: E501
+        parsed_log = parse_log_record(log)
+        self.assertEqual(parsed_log, ("/api/v2/slot/4705/groups", 0.704))
+
+    def test_parse_log_record_when_wrong_format(self):
+        log = '1200 2613 "516057-4708-9752745" "2a828197ae235b0b3cb" '
+        parsed_log = parse_log_record(log)
+        self.assertEqual(parsed_log, None)
