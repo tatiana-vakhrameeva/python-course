@@ -214,7 +214,7 @@ def main(config):
 
     render_template(config.get("REPORT_TEMPLATE_PATH"), report_file_path, report_data)
 
-    # logging.info('Report saved to {}'.format(os.path.normpath(report_file_path)))
+    logging.info("Report saved to {}".format(os.path.normpath(report_file_path)))
 
 
 if __name__ == "__main__":
