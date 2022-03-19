@@ -6,7 +6,7 @@ import gzip
 import argparse
 import io
 from datetime import datetime
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from string import Template
 import statistics
 
@@ -27,9 +27,6 @@ LOG_RECORD_RE = re.compile(
     r'"\S+" '  # http_X_RB_USER
     r"(?P<time>\d+\.\d+)"  # request_time
 )
-
-# TODO: use it
-DateNamedFileInfo = namedtuple("DateNamedFileInfo", ["file_path", "file_date"])
 
 config = {
     "REPORT_DIR": "reports",
@@ -151,7 +148,7 @@ def get_latest_log_info(files_dir):
         return None
 
     latest_file_info = {"file_date": 0, "name": None}
-    # define which latest
+
     for filename in os.listdir(files_dir):
         match = re.match(r"^nginx-access-ui\.log-(?P<date>\d{8})(\.gz)?$", filename)
         if not match:
@@ -162,7 +159,6 @@ def get_latest_log_info(files_dir):
             latest_file_info["file_date"] = file_date
             latest_file_info["name"] = filename
 
-        # CODE HERE
     if latest_file_info["name"]:
         return latest_file_info
 
@@ -187,7 +183,6 @@ def render_template(template_path, to, data):
 
 
 def main(config):
-    # resolving an actual log
     latest_log_info = get_latest_log_info(config.get("LOG_DIR"))
 
     if not latest_log_info:
@@ -205,9 +200,10 @@ def main(config):
         logging.info("Looks like everything is up-to-date")
         return
 
-    # report creation
     latest_log_path = os.path.join(config["LOG_DIR"], latest_log_info["name"])
+
     logging.info('Collecting data from "{}"'.format(os.path.normpath(latest_log_path)))
+
     log_records = get_log_records(latest_log_path, config.get("ERRORS_LIMIT"))
 
     report_data = create_report(log_records, config["MAX_REPORT_SIZE"])

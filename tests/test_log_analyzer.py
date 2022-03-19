@@ -1,5 +1,11 @@
 import unittest
-from src.log_analyzer import is_gzip_file, get_log_records, parse_log_record
+from src.log_analyzer import (
+    is_gzip_file,
+    get_log_records,
+    parse_log_record,
+    create_report,
+    get_latest_log_info,
+)
 
 
 class TestLogAnalyzer(unittest.TestCase):
@@ -39,3 +45,47 @@ class TestLogAnalyzer(unittest.TestCase):
         log = '1200 2613 "516057-4708-9752745" "2a828197ae235b0b3cb" '
         parsed_log = parse_log_record(log)
         self.assertEqual(parsed_log, None)
+
+    def test_create_report(self):
+        records = [
+            ("/api/v2/banner/25019354", 0.39),
+            ("/api/1/photogenic_banners/list/?server_name=WIN7RB4", 0.133),
+        ]
+        max_records = 5
+        report_lines = create_report(records, max_records)
+        expected_records = [
+            {
+                "href": "/api/v2/banner/25019354",
+                "count": 1,
+                "count_perc": 50.0,
+                "time_sum": 0.39,
+                "time_perc": 74.56978967495219,
+                "time_avg": 0.39,
+                "time_max": 0.39,
+                "time_med": 0.39,
+            },
+            {
+                "href": "/api/1/photogenic_banners/list/?server_name=WIN7RB4",
+                "count": 1,
+                "count_perc": 50.0,
+                "time_sum": 0.133,
+                "time_perc": 25.430210325047803,
+                "time_avg": 0.133,
+                "time_max": 0.133,
+                "time_med": 0.133,
+            },
+        ]
+        self.assertEqual(report_lines, expected_records)
+
+    def test_get_latest_log_info(self):
+        files_dir = "tests/data/logs"
+        latest_log = get_latest_log_info(files_dir)
+        self.assertEqual(
+            latest_log,
+            {"file_date": "20180321", "name": "nginx-access-ui.log-20180321.gz"},
+        )
+
+    def test_get_latest_log_empty_dir(self):
+        files_dir = "other/dir"
+        latest_log = get_latest_log_info(files_dir)
+        self.assertEqual(latest_log, None)
