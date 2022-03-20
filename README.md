@@ -10,4 +10,6 @@
 #### Code formatting
 * Run ```poetry run black [path]```
 
+#### Run deco task
+```./run deco```
 
