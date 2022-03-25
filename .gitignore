@@ -2,5 +2,5 @@
 .vscode
 __pycache__
 nginx_logs
-logs
+/logs
 jquery*
