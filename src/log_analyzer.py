@@ -85,7 +85,7 @@ def create_report(records, max_records):
     return report_lines
 
 
-def get_log_records(log_path, errors_limit=None):
+def get_log_records(log_path, parse_log_record, errors_limit=None):
     open_fn = gzip.open if is_gzip_file(log_path) else io.open
     errors = 0
     records = []
@@ -204,7 +204,9 @@ def main(config):
 
     logging.info('Collecting data from "{}"'.format(os.path.normpath(latest_log_path)))
 
-    log_records = get_log_records(latest_log_path, config.get("ERRORS_LIMIT"))
+    log_records = get_log_records(
+        latest_log_path, parse_log_record, config.get("ERRORS_LIMIT")
+    )
 
     report_data = create_report(log_records, config["MAX_REPORT_SIZE"])
 

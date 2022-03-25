@@ -21,19 +21,19 @@ class TestLogAnalyzer(unittest.TestCase):
 
     def test_get_log_recors_return_recors_correctly(self):
         log_path = "tests/data/logs/nginx-access-ui.log-20180320.gz"
-        res = get_log_records(log_path)
+        res = get_log_records(log_path, parse_log_record)
         self.assertEqual(len(res), 6)
 
     def test_get_log_recors_raise_error_when_errors_limit_reached(self):
         log_path = "tests/data/logs/nginx-access-ui.log-20180321.gz"
         errors_limit = 0.1
         with self.assertRaises(RuntimeError):
-            get_log_records(log_path, errors_limit)
+            get_log_records(log_path, parse_log_record, errors_limit)
 
     def test_get_log_recors_return_recors_correctly_when_errors(self):
         log_path = "tests/data/logs/nginx-access-ui.log-20180321.gz"
         errors_limit = 0.5
-        res = get_log_records(log_path, errors_limit)
+        res = get_log_records(log_path, parse_log_record, errors_limit)
         self.assertEqual(len(res), 4)
 
     def test_parse_log_record(self):
