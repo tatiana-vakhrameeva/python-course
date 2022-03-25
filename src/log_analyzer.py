@@ -9,6 +9,7 @@ from datetime import datetime
 from collections import defaultdict
 from string import Template
 import statistics
+from copy import deepcopy
 
 
 LOG_RECORD_RE = re.compile(
@@ -223,11 +224,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     args_config = load_conf(args.config)
-    config.update(args_config)
+
+    conf = deepcopy(config)
+    conf.update(args_config)
 
     setup_logger(config.get("LOG_FILE", None))
 
     try:
-        main(config)
+        main(conf)
     except Exception as e:
         logging.exception(msg=e)
