@@ -1,5 +1,9 @@
 #!/bin/bash
 
+deco() {
+    poetry run python src/deco.py
+}
+
 init() {
     echo "Init..."
     poetry env use python3.10
@@ -8,4 +12,6 @@ init() {
 
 if [[ "$1" = "init" ]]; then
     init
+elif [[ "$1" = "deco" ]]; then
+    deco
 fi
