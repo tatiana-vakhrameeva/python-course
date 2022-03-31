@@ -6,9 +6,11 @@ repos:
         entry: poetry run flake8
         files: ^src|tests
         language: system
+        exclude: tests/data
 
     -   id: black
         name: black
         entry: poetry run black
         files: ^src|tests
         language: system
+        exclude: tests/data

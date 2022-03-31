@@ -10,6 +10,13 @@
 #### Code formatting
 * Run ```poetry run black [path]```
 
+#### Tests
+* Run ```poetry run python -m unittest -v```
+
+#### Log Analyzer
+* Download jquery.tablesorter.min.js and put it to root project dir or specify path to it in template/report.html
+* Run ```./run log_analyzer``` or ```./run log_analyzer --config CONFIG``` to pass config file
+
 #### Run deco task
 ```./run deco```
 

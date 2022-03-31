@@ -1,13 +1,18 @@
 #!/bin/bash
 
-deco() {
-    poetry run python src/deco.py
-}
-
 init() {
     echo "Init..."
     poetry env use python3.10
     poetry install
+}
+
+deco() {
+    poetry run python src/deco.py
+}
+
+log_analyzer() {
+    echo "Running log analyzer..."
+    poetry run python src/log_analyzer.py $1 $2
 }
 
 poker() {
@@ -17,6 +22,8 @@ poker() {
 
 if [[ "$1" = "init" ]]; then
     init
+elif [[ "$1" = "log_analyzer" ]]; then
+    log_analyzer $2 $3
 elif [[ "$1" = "poker" ]]; then
     poker
 elif [[ "$1" = "deco" ]]; then
