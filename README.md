@@ -13,3 +13,6 @@
 #### Run deco task
 ```./run deco```
 
+#### Run poker task
+```./run poker```
+

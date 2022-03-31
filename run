@@ -10,8 +10,15 @@ init() {
     poetry install
 }
 
+poker() {
+    echo "Running poker..."
+    poetry run python src/poker.py
+}
+
 if [[ "$1" = "init" ]]; then
     init
+elif [[ "$1" = "poker" ]]; then
+    poker
 elif [[ "$1" = "deco" ]]; then
     deco
 fi
