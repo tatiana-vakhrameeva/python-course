@@ -13,6 +13,7 @@ deco() {
 log_analyzer() {
     echo "Running log analyzer..."
     poetry run python src/log_analyzer.py $1 $2
+}
 
 poker() {
     echo "Running poker..."
