@@ -16,4 +16,5 @@
 #### Tests
 * Run ```poetry run python -m unittest -v```
 
-
+#### Run deco task
+```./run deco```
