@@ -23,3 +23,5 @@
 #### Run poker task
 ```./run poker```
 
+#### Run increment/decrement task
+* Same steps as for until task
