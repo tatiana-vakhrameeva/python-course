@@ -23,3 +23,7 @@
 #### Run poker task
 ```./run poker```
 
+#### Run until
+* Step the same as for opcode task
+* For regenerating grammar and ast were used ```make regen-grammar``` and ```make regen-ast```
+
