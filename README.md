@@ -31,4 +31,6 @@
 
 #### Run until
 * Step the same as for opcode task
-* For regenerating grammar and ast were used ```make regen-grammar``` and ```make regen-ast```
+
+#### Run increment/decrement task
+* Same steps as for until task
