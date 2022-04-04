@@ -29,3 +29,6 @@
 * Change directory ```cd opt/cpython``` and apply git patch ```git apply ../../tmp/bin/new_opcode.patch```
 * Run ```make -j2```
 
+#### Run until
+* Step the same as for opcode task
+* For regenerating grammar and ast were used ```make regen-grammar``` and ```make regen-ast```
