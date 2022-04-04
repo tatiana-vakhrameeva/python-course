@@ -23,7 +23,12 @@
 #### Run poker task
 ```./run poker```
 
+#### Run opcode task
+* Run cpython in docker ```docker run -ti --rm -v [your-path-to-project]/hw2:/tmp/bin centos:centos7 /bin/bash```
+* Run ```./tmp/bin/init``` to install and compile cpython
+* Change directory ```cd opt/cpython``` and apply git patch ```git apply ../../tmp/bin/new_opcode.patch```
+* Run ```make -j2```
+
 #### Run until
 * Step the same as for opcode task
 * For regenerating grammar and ast were used ```make regen-grammar``` and ```make regen-ast```
-
