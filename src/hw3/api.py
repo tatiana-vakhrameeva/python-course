@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import abc
+from abc import ABC, abstractmethod
 import json
 import datetime
 import logging
 import hashlib
+import re
 import uuid
 from optparse import OptionParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from dataclasses import dataclass
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -36,35 +38,102 @@ GENDERS = {
 }
 
 
-class CharField(object):
-    pass
+@dataclass
+class Field(object):
+    value: any
+    required: bool = False
+    nullable: bool = True
+    field_name = ""
+    errors = []
+
+    def validate(self, value):
+        if self.required and value is None:
+            self.errors.append(f"{self.field_name} - This field is required")
+
+        if not self.nullable and not value:
+            self.errors.append(f"{self.field_name} - This field can not be empty")
 
 
-class ArgumentsField(object):
+class CharField(Field):
+    value: str
+
+    def validate(self, value):
+        super().validate(value)
+
+        if not isinstance(value, str):
+            self.errors.append(f"{self.field_name} - This field must be string")
+
+
+class ArgumentsField(Field):  # object?
     pass
 
 
 class EmailField(CharField):
-    pass
+    field_name: str = "Email"
+
+    def validate(self, value):
+        super().validate(value)
+
+        if "@" not in value:
+            self.errors.append(f"{self.field_name} must contain @")
 
 
-class PhoneField(object):
-    pass
+class PhoneField(Field):
+    field_name: str = "Phone"
+    value: str | int
+
+    def validate(self, value):
+        super().validate(value)
+
+        if not isinstance(value, str) and not isinstance(value, int):
+            self.errors.append(f"{self.field_name} - This field must be string or int")
+
+        if len(value) < 11:
+            self.errors.append(f"{self.field_name} must contain 11 symbols")
+
+        if str(value[0]) != "7":
+            self.errors.append(f"{self.field_name} must starts with 7")
 
 
-class DateField(object):
-    pass
+class DateField(CharField):
+    field_name: str = "Date"
+
+    def validate(self, value):
+        super().validate(value)
+
+        if not re.match(r"\d{2}\.\d{2}.\d{4}", value):
+            self.errors.append(f"{self.field_name} must be in DD.MM.YYYY format")
 
 
-class BirthDayField(object):
-    pass
+class BirthDayField(DateField):
+    field_name: str = "Birthday"
+
+    def validate(self, value):
+        super().validate(value)
+
+        max_allowed_age = 70
+        date_to_compare = datetime.datetime.now()
+        date_to_compare.replace(year=date_to_compare.year - max_allowed_age)
+
+        if date_to_compare > datetime.datetime.strptime(value, "%d.%m.%Y"):
+            self.errors.append(f"{self.field_name} is not valid. Must be under 70")
 
 
-class GenderField(object):
-    pass
+class GenderField(Field):
+    field_name: str = "Gender"
+    value: int
+
+    def validate(self, value):
+        super().validate(value)
+
+        if not isinstance(value, int):
+            self.errors.append(f"{self.field_name} - This field must be int")
+
+        if value not in GENDERS.keys():
+            self.errors.append(f"{self.field_name} - This field must be one of 0, 1, 2")
 
 
-class ClientIDsField(object):
+class ClientIDsField(Field):
     pass
 
 
@@ -106,8 +175,21 @@ def check_auth(request):
     return False
 
 
+def online_score():
+    pass
+
+
+def clients_interests():
+    pass
+
+
 def method_handler(request, ctx, store):
+    methods = {"online_score": online_score, "clients_interests": clients_interests}
+
+    methods[request.get("body").get("method")]()
+
     response, code = None, None
+
     return response, code
 
 
@@ -151,7 +233,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
             r = {"error": response or ERRORS.get(code, "Unknown Error"), "code": code}
         context.update(r)
         logging.info(context)
-        self.wfile.write(json.dumps(r))
+        self.wfile.write(json.dumps(r).encode())
         return
 
 
