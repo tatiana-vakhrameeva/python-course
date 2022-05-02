@@ -221,10 +221,12 @@ class MethodRequest(BaseRequest):
 def check_auth(request):
     if request.is_admin:
         digest = hashlib.sha512(
-            datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT
+            bytes(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT, "utf-8")
         ).hexdigest()
     else:
-        digest = hashlib.sha512(request.account + request.login + SALT).hexdigest()
+        digest = hashlib.sha512(
+            bytes(request.account + request.login + SALT, "utf-8")
+        ).hexdigest()
     if digest == request.token:
         return True
     return False
@@ -262,6 +264,9 @@ def method_handler(request, ctx, store):
 
     request_method = MethodRequest(request.get("body"))
 
+    if not check_auth(request_method):
+        return "Forbidden", FORBIDDEN
+
     args = request_method.arguments
 
     if request_method.method in methods.keys():
@@ -291,6 +296,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         request = None
         try:
             data_string = self.rfile.read(int(self.headers["Content-Length"]))
+            data_string = data_string.decode("utf-8")
             request = json.loads(data_string)
         except Exception as e:
             logging.exception("Bad request: %s" % e)
