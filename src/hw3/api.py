@@ -44,7 +44,6 @@ class Field(object):
     required: bool = False
     nullable: bool = True
     field_name = ""
-    errors = []
 
     def __init__(self, required=False, nullable=True):
         self.required = required
@@ -52,10 +51,10 @@ class Field(object):
 
     def validate(self):
         if self.required and self.value is None:
-            self.errors.append(f"{self.field_name} - This field is required")
+            raise ValueError(f"{self.field_name} - This field is required")
 
         if not self.nullable and not self.value:
-            self.errors.append(f"{self.field_name} - This field can not be empty")
+            raise ValueError(f"{self.field_name} - This field can not be empty")
 
 
 class CharField(Field):
@@ -65,7 +64,7 @@ class CharField(Field):
         super().validate(self)
 
         if not isinstance(self.value, str):
-            self.errors.append(f"{self.field_name} - This field must be string")
+            raise ValueError(f"{self.field_name} - This field must be string")
 
 
 class ArgumentsField(Field):
@@ -75,7 +74,7 @@ class ArgumentsField(Field):
         super().validate(self)
 
         if not isinstance(self.value, dict):
-            self.errors.append(f"{self.field_name} - This field must be dict")
+            raise ValueError(f"{self.field_name} - This field must be dict")
 
 
 class EmailField(CharField):
@@ -85,7 +84,7 @@ class EmailField(CharField):
         super().validate(self)
 
         if "@" not in self.value:
-            self.errors.append(f"{self.field_name} must contain @")
+            raise ValueError(f"{self.field_name} must contain @")
 
 
 class PhoneField(Field):
@@ -96,13 +95,13 @@ class PhoneField(Field):
         super().validate(self)
 
         if not isinstance(self.value, str) and not isinstance(self.value, int):
-            self.errors.append(f"{self.field_name} - This field must be string or int")
+            raise ValueError(f"{self.field_name} - This field must be string or int")
 
         if len(self.value) < 11:
-            self.errors.append(f"{self.field_name} must contain 11 symbols")
+            raise ValueError(f"{self.field_name} must contain 11 symbols")
 
         if str(self.value[0]) != "7":
-            self.errors.append(f"{self.field_name} must starts with 7")
+            raise ValueError(f"{self.field_name} must starts with 7")
 
 
 class DateField(CharField):
@@ -112,7 +111,7 @@ class DateField(CharField):
         super().validate(self)
 
         if not re.match(r"\d{2}\.\d{2}.\d{4}", self.value):
-            self.errors.append(f"{self.field_name} must be in DD.MM.YYYY format")
+            raise ValueError(f"{self.field_name} must be in DD.MM.YYYY format")
 
 
 class BirthDayField(DateField):
@@ -126,7 +125,7 @@ class BirthDayField(DateField):
         date_to_compare.replace(year=date_to_compare.year - max_allowed_age)
 
         if date_to_compare > datetime.datetime.strptime(self.value, "%d.%m.%Y"):
-            self.errors.append(f"{self.field_name} is not valid. Must be under 70")
+            raise ValueError(f"{self.field_name} is not valid. Must be under 70")
 
 
 class GenderField(Field):
@@ -137,10 +136,10 @@ class GenderField(Field):
         super().validate(self.value)
 
         if not isinstance(self.value, int):
-            self.errors.append(f"{self.field_name} - This field must be int")
+            raise ValueError(f"{self.field_name} - This field must be int")
 
         if self.value not in GENDERS.keys():
-            self.errors.append(f"{self.field_name} - This field must be one of 0, 1, 2")
+            raise ValueError(f"{self.field_name} - This field must be one of 0, 1, 2")
 
 
 class ClientIDsField(Field):
@@ -152,7 +151,7 @@ class ClientIDsField(Field):
 
         for v in self.value:
             if not isinstance(v, int):
-                self.errors.append(f"{self.field_name} - This field must array of int")
+                raise ValueError(f"{self.field_name} - This field must array of int")
 
 
 class RequestMetaclass(type):
@@ -172,13 +171,13 @@ class BaseRequest(object, metaclass=RequestMetaclass):
         # pass value and validate every field
         for name, field in self.fields.items():
             passed_field = request_params.get(name, None)
-            # todo: validate
+            field.validate()
             setattr(self, name, passed_field)
 
-    def validate(self):
-        # validate all fileds
-        for name, field in self.fields.items():
-            field.validate()
+    # def validate(self):
+    #     # validate all fileds
+    #     for name, field in self.fields.items():
+    #         field.validate()
 
 
 class ClientsInterestsRequest(BaseRequest):
