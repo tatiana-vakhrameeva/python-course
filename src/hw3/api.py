@@ -254,9 +254,17 @@ def online_score(request_method, args, ctx, store):
     )
 
 
-def clients_interests(args):
+def clients_interests(request_method, args, ctx, store):
     clients_interests = ClientsInterestsRequest(args)
-    print(clients_interests)
+    cids = clients_interests.client_ids
+
+    ctx["nclients"] = len(cids)
+
+    response = {}
+    for cid in cids:
+        response[cid] = scoring.get_interests(store, cid)
+
+    return response, OK
 
 
 def method_handler(request, ctx, store):
