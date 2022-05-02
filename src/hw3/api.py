@@ -59,7 +59,7 @@ class CharField(Field):
     def validate(self, value):
         super().validate(value=value)
 
-        if not isinstance(value, str):
+        if value and not isinstance(value, str):
             raise ValueError(f"{self.field_name} - This field must be string")
 
 
@@ -67,7 +67,7 @@ class ArgumentsField(Field):
     def validate(self, value):
         super().validate(value=value)
 
-        if not isinstance(value, dict):
+        if value and not isinstance(value, dict):
             raise ValueError(f"{self.field_name} - This field must be dict")
 
 
@@ -77,7 +77,7 @@ class EmailField(CharField):
     def validate(self, value):
         super().validate(value=value)
 
-        if "@" not in value:
+        if value and "@" not in value:
             raise ValueError(f"{self.field_name} must contain @")
 
 
@@ -87,13 +87,13 @@ class PhoneField(Field):
     def validate(self, value):
         super().validate(value=value)
 
-        if not isinstance(value, str) and not isinstance(value, int):
+        if value and not isinstance(value, str) and not isinstance(value, int):
             raise ValueError(f"{self.field_name} - This field must be string or int")
 
-        if len(value) < 11:
+        if value and len(value) < 11:
             raise ValueError(f"{self.field_name} must contain 11 symbols")
 
-        if str(value[0]) != "7":
+        if value and str(value[0]) != "7":
             raise ValueError(f"{self.field_name} must starts with 7")
 
 
@@ -103,7 +103,7 @@ class DateField(CharField):
     def validate(self, value):
         super().validate(value=value)
 
-        if not re.match(r"\d{2}\.\d{2}.\d{4}", value):
+        if value and not re.match(r"\d{2}\.\d{2}.\d{4}", value):
             raise ValueError(f"{self.field_name} must be in DD.MM.YYYY format")
 
 
@@ -119,7 +119,7 @@ class BirthDayField(DateField):
             year=date_to_compare.year - max_allowed_age
         )
 
-        if date_to_compare > datetime.datetime.strptime(value, "%d.%m.%Y"):
+        if value and date_to_compare > datetime.datetime.strptime(value, "%d.%m.%Y"):
             raise ValueError(f"{self.field_name} is not valid. Must be under 70")
 
 
@@ -129,10 +129,10 @@ class GenderField(Field):
     def validate(self, value):
         super().validate(value=value)
 
-        if not isinstance(value, int):
+        if value and not isinstance(value, int):
             raise ValueError(f"{self.field_name} - This field must be int")
 
-        if value not in GENDERS.keys():
+        if value and value not in GENDERS.keys():
             raise ValueError(f"{self.field_name} - This field must be one of 0, 1, 2")
 
 
@@ -177,10 +177,6 @@ class BaseRequest(object, metaclass=RequestMetaclass):
 class ClientsInterestsRequest(BaseRequest):
     client_ids = ClientIDsField(required=True, nullable=False)
     date = DateField(required=False, nullable=True)
-
-    def validate(self):
-        super().validate()
-        # check pairs
 
 
 class OnlineScoreRequest(BaseRequest):
