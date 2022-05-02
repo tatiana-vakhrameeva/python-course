@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from abc import ABC, abstractmethod
-from array import array
+from abc import abstractmethod
 import json
 import datetime
 import logging
@@ -40,7 +39,6 @@ GENDERS = {
 
 
 class Field(object):
-    value: any
     required: bool = False
     nullable: bool = True
     field_name = ""
@@ -49,107 +47,102 @@ class Field(object):
         self.required = required
         self.nullable = nullable
 
-    def validate(self):
-        if self.required and self.value is None:
+    def validate(self, value):
+        if self.required and value is None:
             raise ValueError(f"{self.field_name} - This field is required")
 
-        if not self.nullable and not self.value:
+        if not self.nullable and not value:
             raise ValueError(f"{self.field_name} - This field can not be empty")
 
 
 class CharField(Field):
-    value: str
+    def validate(self, value):
+        super().validate(value=value)
 
-    def validate(self):
-        super().validate(self)
-
-        if not isinstance(self.value, str):
+        if not isinstance(value, str):
             raise ValueError(f"{self.field_name} - This field must be string")
 
 
 class ArgumentsField(Field):
-    value: dict
+    def validate(self, value):
+        super().validate(value=value)
 
-    def validate(self):
-        super().validate(self)
-
-        if not isinstance(self.value, dict):
+        if not isinstance(value, dict):
             raise ValueError(f"{self.field_name} - This field must be dict")
 
 
 class EmailField(CharField):
     field_name: str = "Email"
 
-    def validate(self):
-        super().validate(self)
+    def validate(self, value):
+        super().validate(value=value)
 
-        if "@" not in self.value:
+        if "@" not in value:
             raise ValueError(f"{self.field_name} must contain @")
 
 
 class PhoneField(Field):
     field_name: str = "Phone"
-    value: str | int
 
-    def validate(self):
-        super().validate(self)
+    def validate(self, value):
+        super().validate(value=value)
 
-        if not isinstance(self.value, str) and not isinstance(self.value, int):
+        if not isinstance(value, str) and not isinstance(value, int):
             raise ValueError(f"{self.field_name} - This field must be string or int")
 
-        if len(self.value) < 11:
+        if len(value) < 11:
             raise ValueError(f"{self.field_name} must contain 11 symbols")
 
-        if str(self.value[0]) != "7":
+        if str(value[0]) != "7":
             raise ValueError(f"{self.field_name} must starts with 7")
 
 
 class DateField(CharField):
     field_name: str = "Date"
 
-    def validate(self):
-        super().validate(self)
+    def validate(self, value):
+        super().validate(value=value)
 
-        if not re.match(r"\d{2}\.\d{2}.\d{4}", self.value):
+        if not re.match(r"\d{2}\.\d{2}.\d{4}", value):
             raise ValueError(f"{self.field_name} must be in DD.MM.YYYY format")
 
 
 class BirthDayField(DateField):
     field_name: str = "Birthday"
 
-    def validate(self):
-        super().validate(self)
+    def validate(self, value):
+        super().validate(value=value)
 
         max_allowed_age = 70
         date_to_compare = datetime.datetime.now()
-        date_to_compare.replace(year=date_to_compare.year - max_allowed_age)
+        date_to_compare = date_to_compare.replace(
+            year=date_to_compare.year - max_allowed_age
+        )
 
-        if date_to_compare > datetime.datetime.strptime(self.value, "%d.%m.%Y"):
+        if date_to_compare > datetime.datetime.strptime(value, "%d.%m.%Y"):
             raise ValueError(f"{self.field_name} is not valid. Must be under 70")
 
 
 class GenderField(Field):
     field_name: str = "Gender"
-    value: int
 
-    def validate(self):
-        super().validate(self.value)
+    def validate(self, value):
+        super().validate(value=value)
 
-        if not isinstance(self.value, int):
+        if not isinstance(value, int):
             raise ValueError(f"{self.field_name} - This field must be int")
 
-        if self.value not in GENDERS.keys():
+        if value not in GENDERS.keys():
             raise ValueError(f"{self.field_name} - This field must be one of 0, 1, 2")
 
 
 class ClientIDsField(Field):
     field_name: str = "ClientIDs"
-    value: array
 
-    def validate(self):
-        super().validate(self)
+    def validate(self, value):
+        super().validate(value=value)
 
-        for v in self.value:
+        for v in value:
             if not isinstance(v, int):
                 raise ValueError(f"{self.field_name} - This field must array of int")
 
@@ -171,13 +164,14 @@ class BaseRequest(object, metaclass=RequestMetaclass):
         # pass value and validate every field
         for name, field in self.fields.items():
             passed_field = request_params.get(name, None)
-            field.validate()
+            field.validate(passed_field)
             setattr(self, name, passed_field)
 
-    # def validate(self):
-    #     # validate all fileds
-    #     for name, field in self.fields.items():
-    #         field.validate()
+        self.validate()
+
+    @abstractmethod
+    def validate(self):
+        pass
 
 
 class ClientsInterestsRequest(BaseRequest):
@@ -186,7 +180,6 @@ class ClientsInterestsRequest(BaseRequest):
 
     def validate(self):
         super().validate()
-
         # check pairs
 
 
@@ -199,9 +192,18 @@ class OnlineScoreRequest(BaseRequest):
     gender = GenderField(required=False, nullable=True)
 
     def validate(self):
-        super().validate()
 
-        # check pairs
+        if not (
+            self.phone
+            and self.email
+            or self.first_name
+            and self.last_name
+            or self.gender
+            and self.birthday
+        ):
+            raise ValueError(
+                "Request should contain one of pairs: Phone + Email, First Name + Last Name or Gender + Birthday"
+            )
 
 
 class MethodRequest(BaseRequest):
@@ -228,10 +230,26 @@ def check_auth(request):
     return False
 
 
-def online_score(args):
+def online_score(request_method, args, ctx, store):
     online_score = OnlineScoreRequest(args)
-    print(online_score)
-    # return scoring.get_score(store, phone, email, birthday=None, gender=None, first_name=None, last_name=None)
+
+    online_score.validate()
+
+    if request_method.is_admin:
+        return {"score": 42}, OK
+
+    return (
+        scoring.get_score(
+            store,
+            online_score.phone,
+            online_score.email,
+            online_score.birthday,
+            online_score.gender,
+            online_score.first_name,
+            online_score.last_name,
+        ),
+        OK,
+    )
 
 
 def clients_interests(args):
@@ -247,11 +265,15 @@ def method_handler(request, ctx, store):
     args = request_method.arguments
 
     if request_method.method in methods.keys():
-        methods[request_method.method](args)
+        try:
+            response, code = methods[request_method.method](
+                request_method, args, ctx, store
+            )
+        except ValueError as e:
+            return str(e), INVALID_REQUEST
+
     else:
         return "Unknown method", INVALID_REQUEST
-
-    response, code = None, OK
 
     return response, code
 
@@ -271,6 +293,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
             data_string = self.rfile.read(int(self.headers["Content-Length"]))
             request = json.loads(data_string)
         except Exception as e:
+            logging.exception("Bad request: %s" % e)
             code = BAD_REQUEST
 
         if request:
