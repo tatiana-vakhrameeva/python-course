@@ -10,7 +10,7 @@ import re
 import uuid
 from optparse import OptionParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import scoring
+import src.hw3.scoring as scoring
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -41,7 +41,7 @@ GENDERS = {
 class Field(object):
     required: bool = False
     nullable: bool = True
-    field_name = ""
+    field_name: str = ""
 
     def __init__(self, required=False, nullable=True):
         self.required = required
@@ -64,6 +64,8 @@ class CharField(Field):
 
 
 class ArgumentsField(Field):
+    field_name: str = "Arguments"
+
     def validate(self, value):
         super().validate(value=value)
 
@@ -90,10 +92,10 @@ class PhoneField(Field):
         if value and not isinstance(value, str) and not isinstance(value, int):
             raise ValueError(f"{self.field_name} - This field must be string or int")
 
-        if value and len(value) < 11:
+        if value and len(str(value)) < 11:
             raise ValueError(f"{self.field_name} must contain 11 symbols")
 
-        if value and str(value[0]) != "7":
+        if value and str(value)[0] != "7":
             raise ValueError(f"{self.field_name} must starts with 7")
 
 
@@ -142,6 +144,9 @@ class ClientIDsField(Field):
     def validate(self, value):
         super().validate(value=value)
 
+        if not isinstance(value, list):
+            raise ValueError(f"{self.field_name} - This field must array of int")
+
         for v in value:
             if not isinstance(v, int):
                 raise ValueError(f"{self.field_name} - This field must array of int")
@@ -161,13 +166,10 @@ class RequestMetaclass(type):
 
 class BaseRequest(object, metaclass=RequestMetaclass):
     def __init__(self, request_params):
-        # pass value and validate every field
         for name, field in self.fields.items():
             passed_field = request_params.get(name, None)
             field.validate(passed_field)
             setattr(self, name, passed_field)
-
-        self.validate()
 
     @abstractmethod
     def validate(self):
@@ -190,12 +192,12 @@ class OnlineScoreRequest(BaseRequest):
     def validate(self):
 
         if not (
-            self.phone
-            and self.email
-            or self.first_name
-            and self.last_name
-            or self.gender
-            and self.birthday
+            self.phone is not None
+            and self.email is not None
+            or self.first_name is not None
+            and self.last_name is not None
+            or self.gender is not None
+            and self.birthday is not None
         ):
             raise ValueError(
                 "Request should contain one of pairs: Phone + Email, First Name + Last Name or Gender + Birthday"
@@ -233,11 +235,13 @@ def online_score(request_method, args, ctx, store):
 
     online_score.validate()
 
+    ctx["has"] = args
+
     if request_method.is_admin:
         return {"score": 42}, OK
 
-    return (
-        scoring.get_score(
+    return {
+        "score": scoring.get_score(
             store,
             online_score.phone,
             online_score.email,
@@ -245,9 +249,8 @@ def online_score(request_method, args, ctx, store):
             online_score.gender,
             online_score.first_name,
             online_score.last_name,
-        ),
-        OK,
-    )
+        )
+    }, OK
 
 
 def clients_interests(request_method, args, ctx, store):
@@ -266,7 +269,10 @@ def clients_interests(request_method, args, ctx, store):
 def method_handler(request, ctx, store):
     methods = {"online_score": online_score, "clients_interests": clients_interests}
 
-    request_method = MethodRequest(request.get("body"))
+    try:
+        request_method = MethodRequest(request.get("body"))
+    except ValueError as e:
+        return str(e), INVALID_REQUEST
 
     if not check_auth(request_method):
         return "Forbidden", FORBIDDEN
