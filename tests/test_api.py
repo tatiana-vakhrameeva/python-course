@@ -3,7 +3,7 @@ import datetime
 import functools
 import unittest
 
-import src.hw3.api as api
+import api
 
 
 def cases(cases):

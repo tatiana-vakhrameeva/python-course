@@ -10,7 +10,7 @@ import re
 import uuid
 from optparse import OptionParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import src.hw3.scoring as scoring
+import scoring 
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
