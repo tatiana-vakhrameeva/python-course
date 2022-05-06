@@ -38,3 +38,6 @@ jobs:
         
       - name: Tests
         run: poetry run python -m unittest -v
+        
+      - name: Tests hw3
+        run: poetry run python hw3/test_api.py
