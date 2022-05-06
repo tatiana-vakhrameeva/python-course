@@ -36,5 +36,6 @@
 * Same steps as for until task
 
 #### Run OOP task
-* start server ```poetry run python api.py```
+* start server ```poetry run python hw3/api.py```
 * send POST requests on address http://127.0.0.1:8080/method according to format specified in Homework
+* run tests ```poetry run python hw3/test_api.py```

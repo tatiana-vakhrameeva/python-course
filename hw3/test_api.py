@@ -3,7 +3,7 @@ import datetime
 import functools
 import unittest
 
-import api
+import api as api
 
 
 def cases(cases):
