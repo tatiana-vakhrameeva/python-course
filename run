@@ -20,6 +20,11 @@ poker() {
     poetry run python src/poker.py
 }
 
+oop() {
+    echo "Running OOP task api server..."
+    poetry run python hw3/api.py
+}
+
 if [[ "$1" = "init" ]]; then
     init
 elif [[ "$1" = "log_analyzer" ]]; then
@@ -28,4 +33,6 @@ elif [[ "$1" = "poker" ]]; then
     poker
 elif [[ "$1" = "deco" ]]; then
     deco
+elif [[ "$1" = "oop" ]]; then
+    oop
 fi
