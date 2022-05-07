@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from abc import abstractmethod
 import json
 import datetime
 import logging
@@ -164,19 +163,17 @@ class RequestMetaclass(type):
 
 class BaseRequest(object, metaclass=RequestMetaclass):
     def __init__(self, request_params):
-        for name, field in self.fields.items():
+        for name, _ in self.fields.items():
             passed_field = request_params.get(name, None)
+            setattr(self, name, passed_field)
+
+    def validate(self):
+        for name, field in self.fields.items():
             try:
-                field.validate(passed_field)
+                field.validate(getattr(self, name))
             except ValidationError as e:
                 e.field_name = name
                 raise
-
-            setattr(self, name, passed_field)
-
-    @abstractmethod
-    def validate(self):
-        pass
 
 
 class ClientsInterestsRequest(BaseRequest):
@@ -193,7 +190,6 @@ class OnlineScoreRequest(BaseRequest):
     gender = GenderField(required=False, nullable=True)
 
     def validate(self):
-
         if not (
             self.phone is not None
             and self.email is not None
@@ -205,6 +201,7 @@ class OnlineScoreRequest(BaseRequest):
             raise ValidationError(
                 "Request should contain one of pairs: Phone + Email, First Name + Last Name or Gender + Birthday"
             )
+        super().validate()
 
 
 class MethodRequest(BaseRequest):
@@ -258,6 +255,8 @@ def online_score(request_method, args, ctx, store):
 
 def clients_interests(request_method, args, ctx, store):
     clients_interests = ClientsInterestsRequest(args)
+    clients_interests.validate()
+
     cids = clients_interests.client_ids
 
     ctx["nclients"] = len(cids)
@@ -272,8 +271,10 @@ def clients_interests(request_method, args, ctx, store):
 def method_handler(request, ctx, store):
     methods = {"online_score": online_score, "clients_interests": clients_interests}
 
+    request_method = MethodRequest(request.get("body"))
+
     try:
-        request_method = MethodRequest(request.get("body"))
+        request_method.validate()
     except ValidationError as e:
         return str(e), INVALID_REQUEST
 
