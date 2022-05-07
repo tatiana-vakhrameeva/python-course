@@ -10,7 +10,7 @@ import re
 import uuid
 from optparse import OptionParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import scoring 
+import scoring
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -38,10 +38,22 @@ GENDERS = {
 }
 
 
+class ValidationError(Exception):
+    def __init__(self, message, field_name=None):
+        self.message = message
+        self.field_name = field_name
+        super().__init__(self.message)
+
+    def __str__(self):
+        if self.field_name:
+            return f"{self.field_name} -> {self.message}"
+
+        return f"{self.message}"
+
+
 class Field(object):
     required: bool = False
     nullable: bool = True
-    field_name: str = ""
 
     def __init__(self, required=False, nullable=True):
         self.required = required
@@ -49,10 +61,10 @@ class Field(object):
 
     def validate(self, value):
         if self.required and value is None:
-            raise ValueError(f"{self.field_name} - This field is required")
+            raise ValidationError("This field is required")
 
         if not self.nullable and not value:
-            raise ValueError(f"{self.field_name} - This field can not be empty")
+            raise ValidationError("This field can not be empty")
 
 
 class CharField(Field):
@@ -60,58 +72,48 @@ class CharField(Field):
         super().validate(value=value)
 
         if value and not isinstance(value, str):
-            raise ValueError(f"{self.field_name} - This field must be string")
+            raise ValidationError("This field must be string")
 
 
 class ArgumentsField(Field):
-    field_name: str = "Arguments"
-
     def validate(self, value):
         super().validate(value=value)
 
         if value and not isinstance(value, dict):
-            raise ValueError(f"{self.field_name} - This field must be dict")
+            raise ValidationError("This field must be dict")
 
 
 class EmailField(CharField):
-    field_name: str = "Email"
-
     def validate(self, value):
         super().validate(value=value)
 
         if value and "@" not in value:
-            raise ValueError(f"{self.field_name} must contain @")
+            raise ValidationError("Must contain @")
 
 
 class PhoneField(Field):
-    field_name: str = "Phone"
-
     def validate(self, value):
         super().validate(value=value)
 
         if value and not isinstance(value, str) and not isinstance(value, int):
-            raise ValueError(f"{self.field_name} - This field must be string or int")
+            raise ValidationError("This field must be string or int")
 
         if value and len(str(value)) < 11:
-            raise ValueError(f"{self.field_name} must contain 11 symbols")
+            raise ValidationError("Must contain 11 symbols")
 
         if value and str(value)[0] != "7":
-            raise ValueError(f"{self.field_name} must starts with 7")
+            raise ValidationError("Must starts with 7")
 
 
 class DateField(CharField):
-    field_name: str = "Date"
-
     def validate(self, value):
         super().validate(value=value)
 
         if value and not re.match(r"\d{2}\.\d{2}.\d{4}", value):
-            raise ValueError(f"{self.field_name} must be in DD.MM.YYYY format")
+            raise ValidationError("Must be in DD.MM.YYYY format")
 
 
 class BirthDayField(DateField):
-    field_name: str = "Birthday"
-
     def validate(self, value):
         super().validate(value=value)
 
@@ -122,34 +124,30 @@ class BirthDayField(DateField):
         )
 
         if value and date_to_compare > datetime.datetime.strptime(value, "%d.%m.%Y"):
-            raise ValueError(f"{self.field_name} is not valid. Must be under 70")
+            raise ValidationError("Must be under 70")
 
 
 class GenderField(Field):
-    field_name: str = "Gender"
-
     def validate(self, value):
         super().validate(value=value)
 
         if value and not isinstance(value, int):
-            raise ValueError(f"{self.field_name} - This field must be int")
+            raise ValidationError("This field must be int")
 
         if value and value not in GENDERS.keys():
-            raise ValueError(f"{self.field_name} - This field must be one of 0, 1, 2")
+            raise ValidationError("This field must be one of 0, 1, 2")
 
 
 class ClientIDsField(Field):
-    field_name: str = "ClientIDs"
-
     def validate(self, value):
         super().validate(value=value)
 
         if not isinstance(value, list):
-            raise ValueError(f"{self.field_name} - This field must array of int")
+            raise ValidationError("This field must array of int")
 
         for v in value:
             if not isinstance(v, int):
-                raise ValueError(f"{self.field_name} - This field must array of int")
+                raise ValidationError("This field must array of int")
 
 
 class RequestMetaclass(type):
@@ -168,7 +166,12 @@ class BaseRequest(object, metaclass=RequestMetaclass):
     def __init__(self, request_params):
         for name, field in self.fields.items():
             passed_field = request_params.get(name, None)
-            field.validate(passed_field)
+            try:
+                field.validate(passed_field)
+            except ValidationError as e:
+                e.field_name = name
+                raise
+
             setattr(self, name, passed_field)
 
     @abstractmethod
@@ -199,7 +202,7 @@ class OnlineScoreRequest(BaseRequest):
             or self.gender is not None
             and self.birthday is not None
         ):
-            raise ValueError(
+            raise ValidationError(
                 "Request should contain one of pairs: Phone + Email, First Name + Last Name or Gender + Birthday"
             )
 
@@ -271,7 +274,7 @@ def method_handler(request, ctx, store):
 
     try:
         request_method = MethodRequest(request.get("body"))
-    except ValueError as e:
+    except ValidationError as e:
         return str(e), INVALID_REQUEST
 
     if not check_auth(request_method):
@@ -284,7 +287,7 @@ def method_handler(request, ctx, store):
             response, code = methods[request_method.method](
                 request_method, args, ctx, store
             )
-        except ValueError as e:
+        except ValidationError as e:
             return str(e), INVALID_REQUEST
 
     else:
