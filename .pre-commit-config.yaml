@@ -4,13 +4,13 @@ repos:
     -   id: flake8
         name: flake8
         entry: poetry run flake8
-        files: ^src|tests
+        files: ^src|tests|hw3
         language: system
         exclude: tests/data
 
     -   id: black
         name: black
         entry: poetry run black
-        files: ^src|tests
+        files: ^src|tests|hw3
         language: system
         exclude: tests/data
