@@ -1,4 +1,5 @@
 import redis
+import logging
 
 
 SOCKET_TIMEOUT = 15000
@@ -12,7 +13,14 @@ class Store(object):
         return self.r.get(key)
 
     def cache_get(self, key):
-        return self.r.get(key)
+        try:
+            return self.r.get(key)
+        except Exception as e:
+            logging.exception("Can't get from cache: %s" % e)
+            return None
 
     def cache_set(self, key, value, time):
-        self.r.set(key, value, ex=time)
+        try:
+            self.r.set(key, value, ex=time)
+        except Exception as e:
+            logging.exception("Can't set to cache: %s" % e)
