@@ -9,8 +9,11 @@ import re
 import uuid
 from optparse import OptionParser
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from store import Store
 import scoring
 
+REDIS_HOST = "localhost"
+REDIS_PORT = "6379"
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
 ADMIN_SALT = "42"
@@ -299,7 +302,7 @@ def method_handler(request, ctx, store):
 
 class MainHTTPHandler(BaseHTTPRequestHandler):
     router = {"method": method_handler}
-    store = None
+    store = Store(host=REDIS_HOST, port=REDIS_PORT)
 
     def get_request_id(self, headers):
         return headers.get("HTTP_X_REQUEST_ID", uuid.uuid4().hex)
