@@ -1,7 +1,7 @@
 import unittest
 
 from ..utils import cases
-from api import Field, ValidationError
+from api import Field, ValidationError, CharField
 
 
 class TestField(unittest.TestCase):
@@ -35,7 +35,34 @@ class TestField(unittest.TestCase):
 
 
 class TestCharField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": "somevalue",
+            },
+            {"init_values": {"required": True, "nullable": True}, "value": ""},
+            {"value": "somevalue"},
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = CharField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = CharField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestArgumentsField(unittest.TestCase):
