@@ -1,7 +1,7 @@
 import unittest
 
 from ..utils import cases
-from api import Field, ValidationError, CharField
+from api import Field, ValidationError, CharField, ArgumentsField, EmailField
 
 
 class TestField(unittest.TestCase):
@@ -56,6 +56,8 @@ class TestCharField(unittest.TestCase):
                 "init_values": {"required": True, "nullable": True},
             },
             {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
         ]
     )
     def test_validation_failed(self, args):
@@ -66,11 +68,72 @@ class TestCharField(unittest.TestCase):
 
 
 class TestArgumentsField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": {"a": 4, "b": "some string"},
+            },
+            {"init_values": {"required": True, "nullable": True}, "value": ""},
+            {"value": {}},
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = ArgumentsField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = ArgumentsField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestEmailField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": "goodemail@example.com",
+            },
+            {
+                "init_values": {"required": True, "nullable": True},
+                "value": "aaaa@example.com",
+            },
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = EmailField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+            {"value": "aaaexample"},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = EmailField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestPhoneField(unittest.TestCase):
