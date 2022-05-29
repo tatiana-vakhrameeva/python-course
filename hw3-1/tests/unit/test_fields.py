@@ -12,6 +12,7 @@ from api import (
     DateField,
     BirthDayField,
     GenderField,
+    ClientIDsField,
 )
 
 
@@ -323,7 +324,43 @@ class TestGenderField(unittest.TestCase):
 
 
 class TestClientIDsField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": [0],
+            },
+            {
+                "init_values": {"required": True, "nullable": True},
+                "value": [],
+            },
+            {"value": [1, 2, 3, 4]},
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = ClientIDsField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+            {"value": "aaaexample"},
+            {"value": 4},
+            {"value": [4, "a", 3]},
+            {"value": {}},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = ClientIDsField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 if __name__ == "__main__":
