@@ -1,7 +1,14 @@
 import unittest
 
 from ..utils import cases
-from api import Field, ValidationError, CharField, ArgumentsField, EmailField
+from api import (
+    Field,
+    ValidationError,
+    CharField,
+    ArgumentsField,
+    EmailField,
+    PhoneField,
+)
 
 
 class TestField(unittest.TestCase):
@@ -137,7 +144,43 @@ class TestEmailField(unittest.TestCase):
 
 
 class TestPhoneField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": "71231232323",
+            },
+            {
+                "init_values": {"required": True, "nullable": True},
+                "value": 77777777777,
+            },
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = PhoneField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+            {"value": "aaaexample"},
+            {"value": "77777"},
+            {"value": 12345},
+            {"value": 10101010101},
+            {"value": "12345678901"},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = PhoneField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestDateField(unittest.TestCase):
