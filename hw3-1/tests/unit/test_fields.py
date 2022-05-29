@@ -8,6 +8,7 @@ from api import (
     ArgumentsField,
     EmailField,
     PhoneField,
+    DateField,
 )
 
 
@@ -184,7 +185,42 @@ class TestPhoneField(unittest.TestCase):
 
 
 class TestDateField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": "12.12.1997",
+            },
+            {
+                "init_values": {"required": True, "nullable": True},
+                "value": "01.01.1716",
+            },
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = DateField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+            {"value": "aaaexample"},
+            {"value": "77777"},
+            {"value": "12/12/1703"},
+            {"value": "2004.03.03"},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = DateField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestBirthDayField(unittest.TestCase):
