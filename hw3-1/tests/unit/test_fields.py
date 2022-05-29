@@ -11,6 +11,7 @@ from api import (
     PhoneField,
     DateField,
     BirthDayField,
+    GenderField,
 )
 
 
@@ -284,7 +285,41 @@ class TestBirthDayField(unittest.TestCase):
 
 
 class TestGenderField(unittest.TestCase):
-    pass
+    @cases(
+        [
+            {
+                "init_values": {"required": True, "nullable": False},
+                "value": 0,
+            },
+            {
+                "init_values": {"required": True, "nullable": True},
+                "value": 1,
+            },
+            {"value": 2},
+        ]
+    )
+    def test_validation_passed(self, args):
+        field = GenderField(args.get("init_values"))
+        self.assertIsNone(field.validate(args.get("value")))
+
+    @cases(
+        [
+            {"init_values": {"required": True, "nullable": False}, "value": None},
+            {
+                "init_values": {"required": True, "nullable": True},
+            },
+            {"value": 123},
+            {"value": ["array"]},
+            {"value": bytes("bytes", "utf-8")},
+            {"value": "aaaexample"},
+            {"value": 4},
+        ]
+    )
+    def test_validation_failed(self, args):
+        field = GenderField(args.get("init_values"))
+
+        with self.assertRaises(ValidationError):
+            field.validate(args.get("value"))
 
 
 class TestClientIDsField(unittest.TestCase):
