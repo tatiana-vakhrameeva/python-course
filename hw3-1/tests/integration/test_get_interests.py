@@ -4,6 +4,7 @@ import datetime
 
 from ..utils import cases, MockRedis
 import api
+from api import INVALID_REQUEST, OK
 from store import Store
 
 
@@ -38,7 +39,10 @@ class TestGetInterests(unittest.TestCase):
         [
             {
                 "request": {},
-                "expected_response": ("login -> This field is required", 422),
+                "expected_response": (
+                    "login -> This field is required",
+                    INVALID_REQUEST,
+                ),
             },
         ]
     )
@@ -97,7 +101,7 @@ class TestGetInterests(unittest.TestCase):
                     "method": "somemethod",
                     "arguments": {"client_ids": [1, 2, 3, 4], "date": ""},
                 },
-                "expected_response": ("Unknown method", 422),
+                "expected_response": ("Unknown method", INVALID_REQUEST),
             },
         ]
     )
@@ -127,7 +131,10 @@ class TestGetInterests(unittest.TestCase):
                     "method": "clients_interests",
                     "arguments": {"client_ids": [1, 2, 3, 4], "date": "invalid date"},
                 },
-                "expected_response": ("date -> Must be in DD.MM.YYYY format", 422),
+                "expected_response": (
+                    "date -> Must be in DD.MM.YYYY format",
+                    INVALID_REQUEST,
+                ),
             },
             {
                 "request": {
@@ -138,7 +145,7 @@ class TestGetInterests(unittest.TestCase):
                 },
                 "expected_response": (
                     "client_ids -> This field must array of int",
-                    422,
+                    INVALID_REQUEST,
                 ),
             },
         ]
@@ -169,7 +176,10 @@ class TestGetInterests(unittest.TestCase):
                     "method": "clients_interests",
                     "arguments": {"client_ids": [1, 2, 3, 4], "date": "invalid date"},
                 },
-                "expected_response": ("account -> This field must be string", 422),
+                "expected_response": (
+                    "account -> This field must be string",
+                    INVALID_REQUEST,
+                ),
             },
             {
                 "request": {
@@ -178,7 +188,10 @@ class TestGetInterests(unittest.TestCase):
                     "method": "clients_interests",
                     "arguments": {"client_ids": [1, 2, 3, 4], "date": "invalid date"},
                 },
-                "expected_response": ("login -> This field must be string", 422),
+                "expected_response": (
+                    "login -> This field must be string",
+                    INVALID_REQUEST,
+                ),
             },
         ]
     )
@@ -209,7 +222,7 @@ class TestGetInterests(unittest.TestCase):
                 },
                 "expected_response": (
                     {1: "yoga", 2: "drums", 3: "programing", 4: "coffee"},
-                    200,
+                    OK,
                 ),
             },
         ]

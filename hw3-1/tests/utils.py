@@ -32,3 +32,14 @@ class MockRedis:
             self.cache[key] = value
             return "OK"
         return None
+
+    def cache_get(self, key):
+        if key in self.cache:
+            return self.cache[key]
+        return None
+
+    def cache_set(self, key, value, *args, **kwargs):
+        if self.cache is not None:
+            self.cache[key] = value
+            return "OK"
+        return None
