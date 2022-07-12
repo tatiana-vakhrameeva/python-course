@@ -41,3 +41,7 @@ jobs:
         
       - name: Tests hw3
         run: poetry run python hw3/test_api.py
+        
+      - name: Tests hw3-1
+        run: poetry run python -m unittest -v
+        working-directory: hw3-1
