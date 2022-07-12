@@ -4,7 +4,7 @@ import datetime
 
 from ..utils import cases, MockRedis
 import api
-from api import INVALID_REQUEST, OK
+from api import INVALID_REQUEST, OK, FORBIDDEN
 from store import Store
 
 
@@ -71,7 +71,7 @@ class TestGetInterests(unittest.TestCase):
                     "method": "clients_interests",
                     "arguments": {"client_ids": [1, 2, 3, 4], "date": ""},
                 },
-                "expected_response": ("Forbidden", 403),
+                "expected_response": ("Forbidden", FORBIDDEN),
             },
         ]
     )
