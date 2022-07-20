@@ -41,4 +41,5 @@
 * run tests ```poetry run python hw3/test_api.py```
 
 #### Testing Scoring API
-* to run tests go to hw3-1 directory ```cd hw3-1``` and run ``poetry run python -m unittest -v```
+* to run tests go to hw3-1 directory ```cd hw3-1``` and run ```poetry run python -m unittest -v```
+* to run with integration tests for Store pass Redis host and port as env variables. For example, ```REDIS_HOST=localhost REDIS_PORT=6379 poetry run python -m unittest -v```
